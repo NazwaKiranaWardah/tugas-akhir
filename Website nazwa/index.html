@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wawa</title>
+  <style>
+    body {
+      background-color: white;
+      color: black;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      background-color: white;
+      padding: 10px;
+      text-align: right;
+    }
+
+    .nav-button {
+      background-color: #90ee90;
+      color: black;
+      padding: 10px 20px;
+      margin: 5px;
+      text-decoration: none;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      display: inline-flex;
+      align-items: center;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-button:hover {
+      background-color: #76c776;
+    }
+
+    .nav-button img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px;
+    }
+
+    header h1.transparent-text {
+      font-size: 36px;
+      font-weight: bold;
+      color: rgba(0, 100, 0, 0.6);
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    main {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    form {
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #ccffcc;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .submit-btn {
+      background-color: black;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: green;
+    }
+
+    #hasil-upload {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .hasil-item {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+    }
+
+    .hasil-item img {
+      max-width: 100%;
+      display: block;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    .hapus-btn, .edit-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      margin-right: 5px;
+      cursor: pointer;
+    }
+
+    .hapus-btn:hover {
+      background-color: darkred;
+    }
+
+    .edit-btn {
+      background-color: orange;
+    }
+
+    .edit-btn:hover {
+      background-color: darkorange;
+    }
+
+    .jawaban-teks, .tugas-teks {
+      white-space: pre-wrap;
+      line-height: 1.5;
+      background-color: #f0fff0;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="Profil.html" class="nav-button">
+      <img src="img/kupu kupu.png" alt="Logo Kupu-kupu" /> Profil
+    </a>
+    <a href="#tugas" class="nav-button">Tugas</a>
+  </nav>
+
+  <header>
+    <h1 class="transparent-text">Selamat Datang</h1>
+  </header>
+
+  <img src="img/heyo.gif" alt="logo" width="100%" />
+
+  <hr />
+
+  <main>
+    <h2 id="tugas">Tugas Kecerdasan Buatan</h2>
+    <form id="uploadForm">
+      <textarea id="Tugas" placeholder="Tugas..."></textarea>
+      <textarea id="Jawaban" placeholder="Tulis jawaban..."></textarea>
+      <input type="file" id="fotoTugas" accept="image/*" />
+      <br /><br />
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+
+    <div id="hasil-upload"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const hasilUpload = document.getElementById('hasil-upload');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = JSON.parse(localStorage.getItem('hasilTugas')) || [];
+      saved.forEach(item => tampilkanHasil(item.teks, item.jawaban, item.foto));
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const teks = document.getElementById('Tugas').value.trim();
+      const jawaban = document.getElementById('Jawaban').value.trim();
+      const foto = document.getElementById('fotoTugas').files[0];
+
+      if (!teks || !jawaban) return;
+
+      if (foto) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const fotoUrl = event.target.result;
+          simpanDanTampilkan(teks, jawaban, fotoUrl);
+        };
+        reader.readAsDataURL(foto);
+      } else {
+        simpanDanTampilkan(teks, jawaban, null);
+      }
+
+      form.reset();
+    });
+
+    function simpanDanTampilkan(teks, jawaban, foto) {
+      const data = JSON.parse(localStorage.getItem('hasilTugas')) || [];
+      data.push({ teks, jawaban, foto });
+      localStorage.setItem('hasilTugas', JSON.stringify(data));
+      tampilkanHasil(teks, jawaban, foto);
+    }
+
+    function tampilkanHasil(teks, jawaban, foto) {
+      const div = document.createElement('div');
+      div.classList.add('hasil-item');
+
+      const imgTag = foto ? `<img src="${foto}" alt="Foto Tugas" />` : '';
+
+      div.innerHTML = `
+        <p><strong>Tugas:</strong></p>
+        <div class="tugas-teks">${teks}</div>
+        <p><strong>Jawaban:</strong></p>
+        <div class="jawaban-teks">${jawaban}</div>
+        ${imgTag}
+        <button class="hapus-btn">Hapus</button>
+        <button class="edit-btn">Edit</button>
+      `;
+
+      const jawabanEl = div.querySelector('.jawaban-teks');
+      const editBtn = div.querySelector('.edit-btn');
+
+      editBtn.addEventListener('click', () => {
+        const currentJawaban = jawabanEl.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.value = currentJawaban;
+        textarea.style.width = "100%";
+
+        jawabanEl.replaceWith(textarea);
+        editBtn.textContent = "Simpan";
+
+        editBtn.onclick = () => {
+          const newJawaban = textarea.value.trim();
+          if (!newJawaban) return;
+
+          const newDiv = document.createElement('div');
+          newDiv.className = 'jawaban-teks';
+          newDiv.textContent = newJawaban;
+
+          textarea.replaceWith(newDiv);
+          editBtn.textContent = "Edit";
+
+          updateJawaban(teks, jawaban, foto, newJawaban);
+          jawaban = newJawaban; // update referensi jawaban lama
+        };
+      });
+
+      div.querySelector('.hapus-btn').addEventListener('click', function () {
+        div.remove();
+        hapusDariStorage(teks, jawaban, foto);
+      });
+
+      hasilUpload.appendChild(div);
+    }
+
+    function updateJawaban(teks, jawabanLama, foto, jawabanBaru) {
+      let data = JSON.parse(localStorage.getItem('hasilTugas')) || [];
+      data = data.map(item => {
+        if (item.teks === teks && item.jawaban === jawabanLama && item.foto === foto) {
+          item.jawaban = jawabanBaru;
+        }
+        return item;
+      });
+      localStorage.setItem('hasilTugas', JSON.stringify(data));
+    }
+
+    function hapusDariStorage(teks, jawaban, foto) {
+      let data = JSON.parse(localStorage.getItem('hasilTugas')) || [];
+      data = data.filter(item => !(item.teks === teks && item.jawaban === jawaban && item.foto === foto));
+      localStorage.setItem('hasilTugas', JSON.stringify(data));
+    }
+  </script>
+</body>
+</html>
